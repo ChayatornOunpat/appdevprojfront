@@ -235,7 +235,7 @@ export default function EditorScreen() {
         </Pressable>
 
         <View style={styles.headerTitleGroup}>
-          <Text style={styles.brand}>IseGrader</Text>
+          <Text style={styles.brand}>Grinder</Text>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {name || `Problem ${problemId}`}
           </Text>

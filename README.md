@@ -1,6 +1,6 @@
-# IseGrader Expo Frontend
+# Grinder Expo Frontend
 
-Tablet-ready Expo/React Native version of the IseGrader UI.
+Tablet-ready Expo/React Native version of the Grinder UI.
 
 ## Run
 

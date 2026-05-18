@@ -204,7 +204,7 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={[styles.content, isWide && styles.contentWide]}>
           <View style={[styles.identity, isWide && styles.identityWide]}>
-            <Text style={styles.brand}>IseGrader</Text>
+            <Text style={styles.brand}>Grinder</Text>
             <Text style={styles.title}>Coding practice, grading, and progress tracking.</Text>
             <Text style={styles.subtitle}>
               {isSignUp

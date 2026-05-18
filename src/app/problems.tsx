@@ -135,7 +135,7 @@ export default function ProblemsScreen() {
     <SafeAreaView style={styles.screen}>
       <View style={styles.header}>
         <View style={styles.headerTitleGroup}>
-          <Text style={styles.brand}>IseGrader</Text>
+          <Text style={styles.brand}>Grinder</Text>
           <Text style={styles.headerTitle}>Problems</Text>
         </View>
         <View style={styles.headerActions}>

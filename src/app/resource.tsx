@@ -127,7 +127,7 @@ export default function ResourceScreen() {
         </Pressable>
 
         <View style={styles.headerTitleGroup}>
-          <Text style={styles.brand}>IseGrader</Text>
+          <Text style={styles.brand}>Grinder</Text>
           <Text style={styles.headerTitle} numberOfLines={1}>
             Resources
           </Text>
@@ -146,7 +146,7 @@ export default function ResourceScreen() {
         <View style={styles.intro}>
           <Text style={styles.title}>Resource files</Text>
           <Text style={styles.subtitle}>
-            PDF materials provided by the grader backend.
+            PDF materials provided by the Grinder backend.
           </Text>
         </View>
 

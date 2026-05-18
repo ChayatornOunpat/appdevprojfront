@@ -53,7 +53,7 @@ export const EditorFrame = forwardRef<EditorFrameHandle, EditorFrameProps>(funct
     <View style={[styles.container, style]}>
       {React.createElement('iframe', {
         ref: iframeRef,
-        title: 'IseGrader code editor',
+        title: 'Grinder code editor',
         srcDoc,
         sandbox: 'allow-scripts allow-same-origin',
         style: styles.iframe,
