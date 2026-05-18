@@ -15,6 +15,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="problems" />
+        <Stack.Screen name="resource" />
         <Stack.Screen name="editor/[id]" />
       </Stack>
     </ThemeProvider>

@@ -271,6 +271,12 @@ export default function EditorScreen() {
             <Text style={styles.descriptionButtonText}>Open description</Text>
           </Pressable>
 
+          <Pressable
+            onPress={() => router.push('/resource')}
+            style={({ pressed }) => [styles.resourceButton, pressed && styles.pressed]}>
+            <Text style={styles.resourceButtonText}>Resources</Text>
+          </Pressable>
+
           <View style={styles.scoreBlock}>
             <View style={styles.scoreRow}>
               <Text style={styles.scoreLabel}>Score</Text>
@@ -417,6 +423,20 @@ const styles = StyleSheet.create({
   },
   descriptionButtonText: {
     color: '#1d4ed8',
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  resourceButton: {
+    alignItems: 'center',
+    borderColor: '#cbd5e1',
+    borderRadius: 8,
+    borderWidth: 1,
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+  },
+  resourceButtonText: {
+    color: '#334155',
     fontSize: 14,
     fontWeight: '900',
   },

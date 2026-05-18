@@ -17,16 +17,94 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiFetch } from '@/lib/api';
 import { getAuthToken, setAuthToken } from '@/lib/auth';
 
+type Credentials = {
+  email: string;
+  password: string;
+};
+
+type TokenResponse = {
+  accessToken?: string;
+};
+
+type ApiErrorPayload = {
+  detail?: unknown;
+  errors?: Record<string, unknown>;
+};
+
+const JSON_HEADERS = {
+  Accept: 'application/json',
+  'Content-Type': 'application/json',
+};
+
+async function readApiError(response: Response, fallback: string) {
+  const text = await response.text();
+  if (!text) {
+    return fallback;
+  }
+
+  try {
+    const payload = JSON.parse(text) as ApiErrorPayload;
+    if (typeof payload.detail === 'string') {
+      return payload.detail;
+    }
+
+    if (payload.errors) {
+      const messages = Object.values(payload.errors).reduce<string[]>((allMessages, fieldMessages) => {
+        if (Array.isArray(fieldMessages)) {
+          return allMessages.concat(fieldMessages.filter((message) => typeof message === 'string'));
+        }
+
+        if (typeof fieldMessages === 'string') {
+          return allMessages.concat(fieldMessages);
+        }
+
+        return allMessages;
+      }, []);
+
+      if (messages.length > 0) {
+        return messages.join(' ');
+      }
+    }
+  } catch {
+    return text;
+  }
+
+  return text;
+}
+
+async function requestLoginToken(credentials: Credentials) {
+  const response = await apiFetch('/login', {
+    authenticated: false,
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify(credentials),
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response, `Login failed with status ${response.status}.`));
+  }
+
+  const token = (await response.json()) as TokenResponse;
+  if (!token.accessToken) {
+    throw new Error('The login response did not include an access token.');
+  }
+
+  return token.accessToken;
+}
+
 export default function LoginScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isWide = width >= 820;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCheckingGoogle, setIsCheckingGoogle] = useState(false);
+
+  const canSubmit = email && password && (!isSignUp || confirmPassword) && !isSubmitting;
 
   useEffect(() => {
     let isMounted = true;
@@ -56,31 +134,8 @@ export default function LoginScreen() {
     setIsSubmitting(true);
 
     try {
-      const response = await apiFetch('/login', {
-        authenticated: false,
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          twoFactorCode: 'string',
-          twoFactorRecoveryCode: 'string',
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Login failed with status ${response.status}`);
-      }
-
-      const token = (await response.json()) as { accessToken?: string };
-      if (!token.accessToken) {
-        throw new Error('The login response did not include an access token.');
-      }
-
-      await setAuthToken(token.accessToken);
+      const token = await requestLoginToken({ email, password });
+      await setAuthToken(token);
       router.replace('/problems');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Login failed.');
@@ -89,19 +144,47 @@ export default function LoginScreen() {
     }
   }
 
-  async function handleGoogleAuthCheck() {
+  async function handleSignUp() {
     setMessage('');
-    setIsCheckingGoogle(true);
+
+    if (password !== confirmPassword) {
+      setMessage('Passwords do not match.');
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
-      const response = await apiFetch('/helloauth');
-      const text = await response.text();
-      setMessage(text || `Google auth check returned ${response.status}.`);
+      const response = await apiFetch('/register', {
+        authenticated: false,
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error(await readApiError(response, `Sign up failed with status ${response.status}.`));
+      }
+
+      const token = await requestLoginToken({ email, password });
+      await setAuthToken(token);
+      router.replace('/problems');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Google auth check failed.');
+      setMessage(error instanceof Error ? error.message : 'Sign up failed.');
     } finally {
-      setIsCheckingGoogle(false);
+      setIsSubmitting(false);
     }
+  }
+
+  function showSignUp() {
+    setMessage('');
+    setIsSignUp(true);
+  }
+
+  function showLogin() {
+    setMessage('');
+    setConfirmPassword('');
+    setIsSignUp(false);
   }
 
   if (isCheckingSession) {
@@ -124,12 +207,14 @@ export default function LoginScreen() {
             <Text style={styles.brand}>IseGrader</Text>
             <Text style={styles.title}>Coding practice, grading, and progress tracking.</Text>
             <Text style={styles.subtitle}>
-              Sign in to continue to your assigned problems and Python workspace.
+              {isSignUp
+                ? 'Create an account to start your assigned problems and Python workspace.'
+                : 'Sign in to continue to your assigned problems and Python workspace.'}
             </Text>
           </View>
 
           <View style={styles.formPanel}>
-            <Text style={styles.formTitle}>Sign in</Text>
+            <Text style={styles.formTitle}>{isSignUp ? 'Sign up' : 'Sign in'}</Text>
 
             <View style={styles.fieldGroup}>
               <Text style={styles.label}>Email</Text>
@@ -159,35 +244,49 @@ export default function LoginScreen() {
               />
             </View>
 
+            {isSignUp && (
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Confirm password</Text>
+                <TextInput
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  autoCapitalize="none"
+                  autoComplete="new-password"
+                  placeholder="Confirm password"
+                  placeholderTextColor="#7b8794"
+                  secureTextEntry
+                  style={styles.input}
+                />
+              </View>
+            )}
+
             {!!message && <Text style={styles.message}>{message}</Text>}
 
             <Pressable
-              disabled={!email || !password || isSubmitting}
-              onPress={handleLogin}
+              disabled={!canSubmit}
+              onPress={isSignUp ? handleSignUp : handleLogin}
               style={({ pressed }) => [
                 styles.primaryButton,
-                (!email || !password || isSubmitting) && styles.disabledButton,
+                !canSubmit && styles.disabledButton,
                 pressed && styles.pressed,
               ]}>
               {isSubmitting ? (
                 <ActivityIndicator color="#ffffff" />
               ) : (
-                <Text style={styles.primaryButtonText}>Login</Text>
+                <Text style={styles.primaryButtonText}>{isSignUp ? 'Create account' : 'Login'}</Text>
               )}
             </Pressable>
 
             <View style={styles.divider} />
 
             <Pressable
-              disabled={isCheckingGoogle}
-              onPress={handleGoogleAuthCheck}
+              onPress={isSignUp ? showLogin : showSignUp}
               style={({ pressed }) => [
                 styles.secondaryButton,
-                isCheckingGoogle && styles.disabledSecondaryButton,
                 pressed && styles.pressed,
               ]}>
               <Text style={styles.secondaryButtonText}>
-                {isCheckingGoogle ? 'Checking...' : 'Sign in with Google'}
+                {isSignUp ? 'Back to sign in' : 'Sign up'}
               </Text>
             </Pressable>
           </View>
@@ -326,9 +425,6 @@ const styles = StyleSheet.create({
     color: '#1d4ed8',
     fontSize: 15,
     fontWeight: '800',
-  },
-  disabledSecondaryButton: {
-    opacity: 0.65,
   },
   pressed: {
     opacity: 0.8,

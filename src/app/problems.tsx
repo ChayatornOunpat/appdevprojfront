@@ -134,13 +134,20 @@ export default function ProblemsScreen() {
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerTitleGroup}>
           <Text style={styles.brand}>IseGrader</Text>
           <Text style={styles.headerTitle}>Problems</Text>
         </View>
-        <Pressable onPress={signOut} style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}>
-          <Text style={styles.signOutText}>Sign out</Text>
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            onPress={() => router.push('/resource')}
+            style={({ pressed }) => [styles.resourceButton, pressed && styles.pressed]}>
+            <Text style={styles.resourceButtonText}>Resources</Text>
+          </Pressable>
+          <Pressable onPress={signOut} style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}>
+            <Text style={styles.signOutText}>Sign out</Text>
+          </Pressable>
+        </View>
       </View>
 
       {isLoading ? (
@@ -186,9 +193,14 @@ const styles = StyleSheet.create({
     borderBottomColor: '#d7dde7',
     borderBottomWidth: 1,
     flexDirection: 'row',
+    gap: 12,
     justifyContent: 'space-between',
     paddingHorizontal: 24,
     paddingVertical: 16,
+  },
+  headerTitleGroup: {
+    flex: 1,
+    minWidth: 0,
   },
   brand: {
     color: '#1d4ed8',
@@ -199,6 +211,23 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: '#111827',
     fontSize: 26,
+    fontWeight: '800',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    flexShrink: 0,
+    gap: 8,
+  },
+  resourceButton: {
+    borderColor: '#bfdbfe',
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  resourceButtonText: {
+    color: '#1d4ed8',
+    fontSize: 14,
     fontWeight: '800',
   },
   signOut: {
