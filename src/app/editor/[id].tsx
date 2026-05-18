@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   Linking,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   useWindowDimensions,
@@ -262,61 +261,61 @@ export default function EditorScreen() {
           />
         </View>
 
-        <ScrollView
-          style={[styles.sidePanel, isWide && styles.sidePanelWide]}
-          contentContainerStyle={styles.sidePanelContent}>
-          <Text style={styles.panelTitle}>{name || 'Problem'}</Text>
+        <View style={[styles.sidePanel, isWide && styles.sidePanelWide]}>
+          <View style={styles.sidePanelContent}>
+            <Text style={styles.panelTitle}>{name || 'Problem'}</Text>
 
-          <Pressable onPress={() => Linking.openURL(descriptionUrl)} style={styles.descriptionButton}>
-            <Text style={styles.descriptionButtonText}>Open description</Text>
-          </Pressable>
+            <Pressable onPress={() => Linking.openURL(descriptionUrl)} style={styles.descriptionButton}>
+              <Text style={styles.descriptionButtonText}>Open description</Text>
+            </Pressable>
 
-          <Pressable
-            onPress={() => router.push('/resource')}
-            style={({ pressed }) => [styles.resourceButton, pressed && styles.pressed]}>
-            <Text style={styles.resourceButtonText}>Resources</Text>
-          </Pressable>
+            <Pressable
+              onPress={() => router.push('/resource')}
+              style={({ pressed }) => [styles.resourceButton, pressed && styles.pressed]}>
+              <Text style={styles.resourceButtonText}>Resources</Text>
+            </Pressable>
 
-          <View style={styles.scoreBlock}>
-            <View style={styles.scoreRow}>
-              <Text style={styles.scoreLabel}>Score</Text>
-              <Text style={styles.scoreValue}>{Math.round(score)}%</Text>
+            <View style={styles.scoreBlock}>
+              <View style={styles.scoreRow}>
+                <Text style={styles.scoreLabel}>Score</Text>
+                <Text style={styles.scoreValue}>{Math.round(score)}%</Text>
+              </View>
+              <View style={styles.progressTrack}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${Math.max(0, Math.min(100, Math.round(score)))}%` },
+                  ]}
+                />
+              </View>
             </View>
-            <View style={styles.progressTrack}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: `${Math.max(0, Math.min(100, Math.round(score)))}%` },
-                ]}
-              />
+
+            <View style={styles.statusBlock}>
+              <Text style={styles.statusLabel}>Editor</Text>
+              <Text style={styles.statusText}>{isEditorReady ? saveStatus : 'Loading editor...'}</Text>
             </View>
-          </View>
 
-          <View style={styles.statusBlock}>
-            <Text style={styles.statusLabel}>Editor</Text>
-            <Text style={styles.statusText}>{isEditorReady ? saveStatus : 'Loading editor...'}</Text>
-          </View>
+            <View style={styles.statusBlock}>
+              <Text style={styles.statusLabel}>Runtime</Text>
+              <Text style={styles.statusText}>{runtimeStatus || `${tests.length} tests loaded`}</Text>
+            </View>
 
-          <View style={styles.statusBlock}>
-            <Text style={styles.statusLabel}>Runtime</Text>
-            <Text style={styles.statusText}>{runtimeStatus || `${tests.length} tests loaded`}</Text>
+            <Pressable
+              disabled={!isEditorReady || isSubmitting}
+              onPress={runTests}
+              style={({ pressed }) => [
+                styles.submitButton,
+                (!isEditorReady || isSubmitting) && styles.disabledButton,
+                pressed && styles.pressed,
+              ]}>
+              {isSubmitting ? (
+                <ActivityIndicator color="#ffffff" />
+              ) : (
+                <Text style={styles.submitButtonText}>Submit</Text>
+              )}
+            </Pressable>
           </View>
-
-          <Pressable
-            disabled={!isEditorReady || isSubmitting}
-            onPress={runTests}
-            style={({ pressed }) => [
-              styles.submitButton,
-              (!isEditorReady || isSubmitting) && styles.disabledButton,
-              pressed && styles.pressed,
-            ]}>
-            {isSubmitting ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <Text style={styles.submitButtonText}>Submit</Text>
-            )}
-          </Pressable>
-        </ScrollView>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -390,26 +389,29 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   sidePanel: {
+    alignSelf: 'center',
     backgroundColor: '#ffffff',
     borderColor: '#d7dde7',
     borderRadius: 8,
     borderWidth: 1,
-    maxHeight: 330,
+    flexGrow: 0,
+    maxWidth: 384,
+    width: '100%',
   },
   sidePanelWide: {
+    alignSelf: 'flex-start',
     flex: 0,
-    maxHeight: '100%',
-    width: 320,
+    width: 360,
   },
   sidePanelContent: {
-    gap: 18,
-    padding: 18,
+    gap: 10,
+    padding: 14,
   },
   panelTitle: {
     color: '#111827',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '900',
-    lineHeight: 26,
+    lineHeight: 23,
   },
   descriptionButton: {
     alignItems: 'center',
@@ -417,7 +419,7 @@ const styles = StyleSheet.create({
     borderColor: '#bfdbfe',
     borderRadius: 8,
     borderWidth: 1,
-    minHeight: 44,
+    minHeight: 36,
     justifyContent: 'center',
     paddingHorizontal: 14,
   },
@@ -431,7 +433,7 @@ const styles = StyleSheet.create({
     borderColor: '#cbd5e1',
     borderRadius: 8,
     borderWidth: 1,
-    minHeight: 44,
+    minHeight: 36,
     justifyContent: 'center',
     paddingHorizontal: 14,
   },
@@ -455,13 +457,13 @@ const styles = StyleSheet.create({
   },
   scoreValue: {
     color: '#0f766e',
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: '900',
   },
   progressTrack: {
     backgroundColor: '#e2e8f0',
     borderRadius: 999,
-    height: 9,
+    height: 7,
     overflow: 'hidden',
   },
   progressFill: {
@@ -469,7 +471,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   statusBlock: {
-    gap: 5,
+    gap: 3,
   },
   statusLabel: {
     color: '#536171',
@@ -478,14 +480,14 @@ const styles = StyleSheet.create({
   },
   statusText: {
     color: '#111827',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
   },
   submitButton: {
     alignItems: 'center',
     backgroundColor: '#2563eb',
     borderRadius: 8,
-    minHeight: 48,
+    minHeight: 40,
     justifyContent: 'center',
     paddingHorizontal: 16,
   },
